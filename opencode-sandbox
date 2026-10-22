@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+set -eu
+
+# Syntax: opencode-sandbox <image> <dir>
+# e.g: opencode-sandbox ubuntu:latest .
+
+ARG_IMAGE="$1"
+ARG_DIR=$(realpath "$2")
+HOME_VOLUME="opencode-sandbox-home"
+
+case "$ARG_DIR" in "/" | "/home" | "$HOME")
+    echo "opencode-sandbox: can't mount '${ARG_DIR}' for security reasons" >&2
+    exit 1
+    ;;
+esac
+
+podman volume create --ignore "$HOME_VOLUME" >/dev/null
+
+exec podman run -it --rm --init \
+  --name "opencode-sandbox-$$" \
+  --userns=keep-id:uid=1000,gid=1000 \
+  --cap-drop=ALL \
+  --security-opt=no-new-privileges \
+  --security-opt=label=disable \
+  --pids-limit=256 \
+  --memory="${OPENCODE_SANDBOX_MEMORY:-2g}" \
+  --cpus="${OPENCODE_SANDBOX_CPUS:-2}" \
+  --volume "${ARG_DIR}:/workspace:rw,Z" \
+  --volume "${HOME_VOLUME}:/home/ubuntu" \
+  -w /workspace \
+  "$ARG_IMAGE"
