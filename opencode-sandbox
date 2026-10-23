@@ -26,6 +26,6 @@ exec podman run -it --rm --init \
   --memory="${OPENCODE_SANDBOX_MEMORY:-2g}" \
   --cpus="${OPENCODE_SANDBOX_CPUS:-2}" \
   --volume "${ARG_DIR}:/workspace:rw,Z" \
-  --volume "${HOME_VOLUME}:/home/ubuntu" \
+  --volume "${HOME_VOLUME}:/home/ubuntu:U" \
   -w /workspace \
   "$ARG_IMAGE"
